@@ -1,0 +1,32 @@
+name: my_offer_app_fixed
+
+description: A Flutter project for managing purchase offers.
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+
+  # Required packages
+  shared_preferences: ^2.2.2
+  sqflite: ^2.3.0
+  path: ^1.8.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.2
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - assets/
