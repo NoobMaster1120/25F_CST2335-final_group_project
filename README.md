@@ -1,8 +1,10 @@
-# my_offer_app_fixed
+# 25F_CST2335-final_group_project
+
 
 A new Flutter project.
 
-## Getting Started
+## 25F_CST2335-final_group_project
+
 
 This project is a starting point for a Flutter application.
 
