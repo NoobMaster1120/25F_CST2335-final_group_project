@@ -43,9 +43,9 @@ class _CarListPageState extends State<CarListPage> {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (_) => const AlertDialog(
-                      title: Text("Instructions"),
-                      content: Text(
+                    builder: (_) => AlertDialog( 
+                      title: const Text("Instructions"),
+                      content: const Text(
                         "• Press + to add a new car for sale.\n"
                         "• Tap on any car to view or edit.\n"
                         "• Use 'Copy previous' to copy last car's details.\n"
@@ -54,7 +54,7 @@ class _CarListPageState extends State<CarListPage> {
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: Text("OK"),
+                          child: const Text("OK"), 
                         ),
                       ],
                     ),
