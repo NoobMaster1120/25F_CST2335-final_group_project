@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'offer_db.dart';
-import 'offer_model.dart';
+import '../data/offer_dao.dart';
+import '../models/offer.dart';
 import 'offer_form_page.dart';
 import 'offer_detail_panel.dart';
 
@@ -12,7 +12,7 @@ class OfferListPage extends StatefulWidget {
 }
 
 class _OfferListPageState extends State<OfferListPage> {
-  final db = OfferDatabase.instance;
+  final dao = OfferDAO();
   List<Offer> offers = [];
   Offer? selectedOffer;
 
@@ -24,7 +24,7 @@ class _OfferListPageState extends State<OfferListPage> {
 
   Future<void> _loadOffers() async {
     print("🔄 Loading offers from DB...");
-    offers = await db.getOffers();
+    offers = await dao.getOffers();
     print("📦 Offer count = ${offers.length}");
     setState(() {});
   }
