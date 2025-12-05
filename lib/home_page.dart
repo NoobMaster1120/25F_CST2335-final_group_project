@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'offers/offer_list_page.dart';
 import 'screens/customer_list_page.dart';
+import 'cars/car_list_page.dart';
+import 'boats/boat_list_page.dart';
 
 /// Main landing page for the CST2335 Final Project.
 /// Contains 4 buttons that navigate to each team member's module.
@@ -49,8 +51,9 @@ class _HomePageState extends State<HomePage> {
               context,
               chinese ? "车辆管理" : "Cars for Sale",
               () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("This module will be built by teammate.")),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CarListPage()),
                 );
               },
             ),
@@ -61,8 +64,9 @@ class _HomePageState extends State<HomePage> {
               context,
               chinese ? "船只管理" : "Boats for Sale",
               () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("This module will be built by teammate.")),
+                 Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BoatListPage()),
                 );
               },
             ),

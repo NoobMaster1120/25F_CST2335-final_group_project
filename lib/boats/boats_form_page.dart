@@ -1,64 +1,59 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../data/offer_dao.dart';
-import '../models/offer.dart';
+import '../data/boat_dao.dart';
+import '../models/boat.dart';
 
-class OfferFormPage extends StatefulWidget {
-  final Offer? existing;
+class BoatFormPage extends StatefulWidget {
+  final Boat? existing;
   final VoidCallback onSaved;
 
-  const OfferFormPage({
+  const BoatFormPage({
     super.key,
     this.existing,
     required this.onSaved,
   });
 
   @override
-  State<OfferFormPage> createState() => _OfferFormPageState();
+  State<BoatFormPage> createState() => _BoatFormPageState();
 }
 
-class _OfferFormPageState extends State<OfferFormPage> {
+class _BoatFormPageState extends State<BoatFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final dao = OfferDAO();
-  final storage = FlutterSecureStorage(); // Create instance here
+  final dao = BoatDAO();
+  final storage = FlutterSecureStorage();
 
-  final customerCtrl = TextEditingController();
-  final vehicleCtrl = TextEditingController();
+  final yearCtrl = TextEditingController();
+  final lengthCtrl = TextEditingController();
   final priceCtrl = TextEditingController();
-  final dateCtrl = TextEditingController();
-
+  final addressCtrl = TextEditingController();
+  String powerType = "motor";
   bool chinese = false;
-  String status = "Pending";
 
-  static const lastOfferKey = "last_offer";
+  static const lastBoatKey = "last_boat";
 
   @override
   void initState() {
     super.initState();
 
     if (widget.existing != null) {
-      final o = widget.existing!;
-      customerCtrl.text = o.customerId;
-      vehicleCtrl.text = o.vehicleId;
-      priceCtrl.text = o.price.toString();
-      dateCtrl.text = o.date;
-      status = o.status;
-    } else {
-      // Set default date to today
-      final now = DateTime.now();
-      dateCtrl.text =
-          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final b = widget.existing!;
+      yearCtrl.text = b.yearBuilt.toString();
+      lengthCtrl.text = b.length.toString();
+      priceCtrl.text = b.price.toString();
+      addressCtrl.text = b.address;
+      powerType = b.powerType;
     }
   }
 
   Future<void> copyPrevious() async {
-    // READ from secure storage
-    final jsonStr = await storage.read(key: lastOfferKey);
+    final jsonStr = await storage.read(key: lastBoatKey);
 
     if (jsonStr == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(chinese ? "没有找到之前的报价" : "No previous offer found")),
+        SnackBar(
+            content: Text(
+                chinese ? "没有找到之前的船只" : "No previous boat found")),
       );
       return;
     }
@@ -66,11 +61,11 @@ class _OfferFormPageState extends State<OfferFormPage> {
     try {
       final map = jsonDecode(jsonStr);
 
-      customerCtrl.text = map["customerId"] ?? "";
-      vehicleCtrl.text = map["vehicleId"] ?? "";
+      yearCtrl.text = map["yearBuilt"]?.toString() ?? "";
+      lengthCtrl.text = map["length"]?.toString() ?? "";
       priceCtrl.text = map["price"]?.toString() ?? "";
-      dateCtrl.text = map["date"] ?? "";
-      status = map["status"] ?? "Pending";
+      addressCtrl.text = map["address"] ?? "";
+      powerType = map["powerType"] ?? "motor";
 
       setState(() {});
 
@@ -84,38 +79,38 @@ class _OfferFormPageState extends State<OfferFormPage> {
     }
   }
 
-  Future<void> saveLast(Offer o) async {
-    // WRITE to secure storage
+  Future<void> saveLast(Boat boat) async {
     try {
       await storage.write(
-        key: lastOfferKey,
-        value: jsonEncode(o.toMap()),
+        key: lastBoatKey,
+        value: jsonEncode(boat.toMap()),
       );
     } catch (e) {
-      print("Error saving last offer: $e");
+      print("Error saving last boat: $e");
     }
   }
 
   Future<void> save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final offer = Offer(
-      id: widget.existing?.id,
-      customerId: customerCtrl.text,
-      vehicleId: vehicleCtrl.text,
-      price: double.parse(priceCtrl.text),
-      date: dateCtrl.text,
-      status: status,
-    );
-
     try {
-      if (offer.id == null) {
-        await dao.insertOffer(offer);
+      final boat = Boat(
+        id: widget.existing?.id,
+        yearBuilt: int.parse(yearCtrl.text),
+        length: double.parse(lengthCtrl.text),
+        powerType: powerType,
+        price: double.parse(priceCtrl.text),
+        address: addressCtrl.text,
+        dateAdded: DateTime.now().toIso8601String(),
+      );
+
+      if (boat.id == null) {
+        await dao.insertBoat(boat);
       } else {
-        await dao.updateOffer(offer);
+        await dao.updateBoat(boat);
       }
 
-      await saveLast(offer);
+      await saveLast(boat);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(chinese ? "保存成功" : "Saved")),
@@ -130,14 +125,14 @@ class _OfferFormPageState extends State<OfferFormPage> {
     }
   }
 
-  Future<void> deleteOffer() async {
+  Future<void> deleteBoat() async {
     if (widget.existing == null) return;
 
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(chinese ? "确认删除" : "Confirm Delete"),
-        content: Text(chinese ? "是否删除此报价?" : "Delete this offer?"),
+        content: Text(chinese ? "是否删除此船只?" : "Delete this boat?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -153,7 +148,7 @@ class _OfferFormPageState extends State<OfferFormPage> {
 
     if (ok == true) {
       try {
-        await dao.deleteOffer(widget.existing!.id!);
+        await dao.deleteBoat(widget.existing!.id!);
         widget.onSaved();
         Navigator.pop(context);
       } catch (e) {
@@ -171,8 +166,8 @@ class _OfferFormPageState extends State<OfferFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(chinese
-            ? (editing ? "编辑报价" : "新增报价")
-            : (editing ? "Edit Offer" : "New Offer")),
+            ? (editing ? "编辑船只" : "新增船只")
+            : (editing ? "Edit Boat" : "New Boat")),
         actions: [
           IconButton(
             icon: const Icon(Icons.language),
@@ -190,76 +185,78 @@ class _OfferFormPageState extends State<OfferFormPage> {
                 onPressed: copyPrevious,
                 child: Text(chinese ? "复制上一个" : "Copy previous"),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               TextFormField(
-                controller: customerCtrl,
+                controller: yearCtrl,
                 decoration: InputDecoration(
-                  labelText: chinese ? "客户 ID" : "Customer ID",
+                  labelText: chinese ? "建造年份" : "Year Built",
+                  hintText: "e.g., 2020",
                 ),
-                validator: (v) => v == null || v.isEmpty ? "Required" : null,
+                keyboardType: TextInputType.number,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return "Required";
+                  final year = int.tryParse(v);
+                  if (year == null) return "Enter a valid year";
+                  if (year < 1800 || year > DateTime.now().year + 1) {
+                    return "Enter a valid year";
+                  }
+                  return null;
+                },
               ),
               TextFormField(
-                controller: vehicleCtrl,
+                controller: lengthCtrl,
                 decoration: InputDecoration(
-                  labelText: chinese ? "车辆 ID" : "Vehicle ID",
+                  labelText: chinese ? "长度 (英尺)" : "Length (feet)",
+                  hintText: "e.g., 30.5",
                 ),
+                keyboardType: TextInputType.number,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return "Required";
+                  final length = double.tryParse(v);
+                  if (length == null) return "Enter a valid number";
+                  if (length <= 0) return "Length must be positive";
+                  return null;
+                },
+              ),
+              DropdownButtonFormField<String>(
+                value: powerType,
+                decoration: InputDecoration(
+                  labelText: chinese ? "动力类型" : "Power Type",
+                ),
+                items: const [
+                  DropdownMenuItem(value: "motor", child: Text("Motor")),
+                  DropdownMenuItem(value: "sail", child: Text("Sail")),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => powerType = value);
+                  }
+                },
                 validator: (v) => v == null || v.isEmpty ? "Required" : null,
               ),
               TextFormField(
                 controller: priceCtrl,
                 decoration: InputDecoration(
-                  labelText: chinese ? "报价" : "Price",
+                  labelText: chinese ? "价格" : "Price",
+                  hintText: "e.g., 45000.00",
                 ),
                 keyboardType: TextInputType.number,
                 validator: (v) {
                   if (v == null || v.isEmpty) return "Required";
-                  final value = double.tryParse(v);
-                  if (value == null) return "Enter a valid number";
-                  if (value <= 0) return "Price must be positive";
+                  final price = double.tryParse(v);
+                  if (price == null) return "Enter a valid number";
+                  if (price <= 0) return "Price must be positive";
                   return null;
                 },
               ),
               TextFormField(
-                controller: dateCtrl,
+                controller: addressCtrl,
                 decoration: InputDecoration(
-                  labelText: chinese ? "日期 YYYY-MM-DD" : "Date YYYY-MM-DD",
+                  labelText: chinese ? "地址" : "Address",
+                  hintText: "e.g., 123 Marina Blvd, City",
                 ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return "Required";
-                  // Simple date format validation
-                  final regex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
-                  if (!regex.hasMatch(v)) return "Use YYYY-MM-DD format";
-                  return null;
-                },
-              ),
-              DropdownButtonFormField<String>(
-                value: status,
-                decoration: InputDecoration(
-                  labelText: chinese ? "状态" : "Status",
-                ),
-                items: const [
-                  DropdownMenuItem(
-                    value: "Pending",
-                    child: Text("Pending"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Accepted",
-                    child: Text("Accepted"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Rejected",
-                    child: Text("Rejected"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Expired",
-                    child: Text("Expired"),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => status = value);
-                  }
-                },
+                maxLines: 2,
+                validator: (v) => v == null || v.isEmpty ? "Required" : null,
               ),
               const SizedBox(height: 20),
               Row(
@@ -276,7 +273,7 @@ class _OfferFormPageState extends State<OfferFormPage> {
                   if (editing)
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: deleteOffer,
+                        onPressed: deleteBoat,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                         ),
