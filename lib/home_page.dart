@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'offers/offer_list_page.dart';
+import 'screens/customer_list_page.dart';
 import 'cars/car_list_page.dart';
 import 'boats/boat_list_page.dart';
 
@@ -36,9 +37,10 @@ class _HomePageState extends State<HomePage> {
             _buildButton(
               context,
               chinese ? "客户管理" : "Customer List",
-              () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("This module will be built by teammate.")),
+                  () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CustomerListPage()),
                 );
               },
             ),
